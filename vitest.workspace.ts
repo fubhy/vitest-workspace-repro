@@ -1,29 +1,19 @@
 import * as path from "path"
-import { defineProject, defineWorkspace, mergeConfig } from "vitest/config"
+import { UserWorkspaceConfig, defineWorkspace, mergeConfig } from "vitest/config"
 
-const shared = defineProject({
-  test: {
-    root: path.join(__dirname, "packages/foo"),
-    alias: {
-      "foo": path.join(__dirname, "packages/foo/src")
-    }
-  }
-})
+const createConfig = (pkg: string, name: string, config?: UserWorkspaceConfig['test']) => mergeConfig({
+  extends: 'vitest.aliases.ts',
+  root: path.join(__dirname, pkg),
+  test: { name, ...config }
+}, config)
 
 export default defineWorkspace([
-  mergeConfig(shared, defineProject({
-    test: {
-      name: "foo",
+  createConfig('packages/foo', 'foo'),
+  createConfig('packages/foo', 'foo|browser', {
+    browser: {
+      name: "chrome",
+      enabled: true,
+      headless: true
     }
-  })),
-  mergeConfig(shared, defineProject({
-    test: {
-      name: "foo|browser",
-      browser: {
-        name: "chrome",
-        enabled: true,
-        headless: true
-      }
-    }
-  })),
+  }),
 ])
